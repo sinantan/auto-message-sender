@@ -116,7 +116,7 @@ pkg/                    # Reusable packages
 ## Local Development
 
 ### **Prerequisites**
-- Go 1.21+
+- Go 1.22+
 - MongoDB (local or cloud)
 - Redis (local or cloud)
 
