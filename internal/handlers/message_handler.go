@@ -44,12 +44,25 @@ func NewMessageHandler(dataOps *dataOperations.DataOperations, config *config.Co
 func (h *MessageHandler) GetSentMessages(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
-		page = 1
+		h.logger.WithError(err).Warn("Invalid page parameter")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid page parameter, must be a positive integer",
+		})
+		return
 	}
 
 	perPage, err := strconv.Atoi(c.DefaultQuery("per_page", "10"))
-	if err != nil || perPage < 1 || perPage > 100 {
-		perPage = 10
+	if err != nil || perPage < 1 {
+		h.logger.WithError(err).Warn("Invalid per_page parameter")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid per_page parameter, must be a positive integer",
+		})
+		return
+	}
+
+	if perPage > 100 {
+		h.logger.Warn("per_page parameter too large, limiting to 100")
+		perPage = 100
 	}
 
 	messages, total, err := h.dataOps.GetSentMessages(page, perPage)

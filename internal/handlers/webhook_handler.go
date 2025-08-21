@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/models"
+	"github.com/sinan/auto-message-sender/internal/validation"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -30,6 +31,10 @@ func NewWebhookHandler(config *config.Config, logger *logrus.Logger) *WebhookHan
 }
 
 func (h *WebhookHandler) SendMessage(ctx context.Context, request models.WebhookRequest) (*models.WebhookResponse, error) {
+	if validationErrors := validation.ValidateWebhookRequest(request.To, request.Content); len(validationErrors) > 0 {
+		return nil, fmt.Errorf("validation failed: %v", validationErrors)
+	}
+
 	logger := h.logger.WithFields(logrus.Fields{
 		"to":      request.To,
 		"content": request.Content,
@@ -117,7 +122,7 @@ func (h *WebhookHandler) SendMessageWithRetry(ctx context.Context, request model
 		logger.WithError(err).Warn("Message send attempt failed")
 
 		if attempt < maxRetries {
-			backoffDuration := time.Duration(attempt) * 5 * time.Second
+			backoffDuration := time.Duration(1<<(attempt-1)) * time.Second
 			logger.WithField("backoff_seconds", backoffDuration.Seconds()).Info("Retrying after backoff")
 
 			select {

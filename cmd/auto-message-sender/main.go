@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/handlers"
@@ -59,7 +60,6 @@ func main() {
 		log,
 		messageHandler,
 		schedulerHandler,
-		webhookHandler,
 	)
 
 	server := &http.Server{
@@ -83,6 +83,12 @@ func main() {
 
 	log.Info("Shutting down server...")
 
+	// Stop scheduler first and wait for jobs to complete
+	if schedulerHandler != nil {
+		log.Info("Stopping scheduler...")
+		schedulerHandler.StopScheduler(&gin.Context{})
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -90,5 +96,5 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	log.Info("Server exited")
+	log.Info("Server exited gracefully")
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"time"
 )
 
 func NewRouter(
@@ -15,7 +16,6 @@ func NewRouter(
 	logger *logrus.Logger,
 	messageHandler *handlers.MessageHandler,
 	schedulerHandler *handlers.SchedulerHandler,
-	webhookHandler *handlers.WebhookHandler,
 ) *gin.Engine {
 	if cfg.App.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -29,6 +29,7 @@ func NewRouter(
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORS())
 	router.Use(middleware.Logging(logger))
+	router.Use(middleware.RateLimit(100, time.Minute))
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

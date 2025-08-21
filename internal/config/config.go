@@ -65,7 +65,7 @@ func Load() *Config {
 			Timeout:  getDurationEnv("MONGODB_TIMEOUT", 10*time.Second),
 		},
 		Redis: RedisConfig{
-			Host:         getEnv("REDIS_HOST", "localhost"),
+			Host:         getEnv("REDIS_HOST", "0.0.0.0"),
 			Port:         getEnv("REDIS_PORT", "6379"),
 			Password:     getEnv("REDIS_PASSWORD", ""),
 			Database:     getIntEnv("REDIS_DATABASE", 0),

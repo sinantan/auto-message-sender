@@ -21,6 +21,7 @@ type SchedulerHandler struct {
 	ticker         *time.Ticker
 	stopChan       chan struct{}
 	isRunning      bool
+	activeJobs     sync.WaitGroup
 	mu             sync.RWMutex
 }
 
@@ -149,6 +150,11 @@ func (h *SchedulerHandler) stopScheduler() {
 		h.ticker.Stop()
 	}
 	close(h.stopChan)
+
+	h.logger.Info("Waiting for active jobs to complete...")
+	h.activeJobs.Wait()
+	h.logger.Info("All jobs completed, scheduler stopped")
+
 	h.isRunning = false
 }
 
@@ -169,7 +175,11 @@ func (h *SchedulerHandler) processMessages() {
 	h.logger.WithField("message_count", len(messages)).Info("Processing messages")
 
 	for _, message := range messages {
-		go h.processSingleMessage(ctx, message)
+		h.activeJobs.Add(1)
+		go func(msg models.Message) {
+			defer h.activeJobs.Done()
+			h.processSingleMessage(ctx, msg)
+		}(message)
 	}
 }
 
@@ -186,9 +196,10 @@ func (h *SchedulerHandler) processSingleMessage(ctx context.Context, message mod
 		Content: message.Content,
 	}
 
-	response, err := h.webhookHandler.SendMessage(ctx, webhookReq)
+	// Try with retry mechanism
+	response, err := h.webhookHandler.SendMessageWithRetry(ctx, webhookReq, 3)
 	if err != nil {
-		logger.WithError(err).Error("Failed to send message")
+		logger.WithError(err).Error("Failed to send message after retries")
 
 		errorMsg := err.Error()
 		if err := h.dataOps.UpdateMessageStatus(message.ID, models.MessageStatusFailed, nil, &errorMsg); err != nil {
