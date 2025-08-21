@@ -194,3 +194,6 @@ docker run -p 8080:8080 --env-file .env auto-message-sender
 - `POST /api/v1/scheduler/stop` - Stop scheduler
 - `GET /api/v1/messages/sent` - List sent messages
 - `GET /swagger/*` - API documentation
+
+## Proof of requests
+
