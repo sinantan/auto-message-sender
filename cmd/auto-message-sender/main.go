@@ -1,3 +1,8 @@
+// @title Auto Message Sender API
+// @version 1.0
+// @description An automatic message sending system that sends messages to webhook endpoints at regular intervals.
+// @host localhost:8080
+// @BasePath /api/v1
 package main
 
 import (
@@ -5,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/sinan/auto-message-sender/cmd/auto-message-sender/docs"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/handlers"

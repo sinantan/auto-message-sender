@@ -48,7 +48,7 @@ func (h *SchedulerHandler) SetWebhookHandler(webhookHandler *WebhookHandler) {
 // @Success 200 {object} models.SchedulerResponse
 // @Failure 400 {object} gin.H
 // @Failure 500 {object} gin.H
-// @Router /api/v1/scheduler/start [post]
+// @Router /scheduler/start [post]
 func (h *SchedulerHandler) StartScheduler(c *gin.Context) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -91,7 +91,7 @@ func (h *SchedulerHandler) StartScheduler(c *gin.Context) {
 // @Success 200 {object} models.SchedulerResponse
 // @Failure 400 {object} gin.H
 // @Failure 500 {object} gin.H
-// @Router /api/v1/scheduler/stop [post]
+// @Router /scheduler/stop [post]
 func (h *SchedulerHandler) StopScheduler(c *gin.Context) {
 	h.mu.Lock()
 	defer h.mu.Unlock()

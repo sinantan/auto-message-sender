@@ -65,7 +65,7 @@ func Load() *Config {
 			Timeout:  getDurationEnv("MONGODB_TIMEOUT", 10*time.Second),
 		},
 		Redis: RedisConfig{
-			Host:         getEnv("REDIS_HOST", "0.0.0.0"),
+			Host:         getEnv("REDIS_HOST", "localhost"),
 			Port:         getEnv("REDIS_PORT", "6379"),
 			Password:     getEnv("REDIS_PASSWORD", ""),
 			Database:     getIntEnv("REDIS_DATABASE", 0),
@@ -79,7 +79,7 @@ func Load() *Config {
 			IdleTimeout:  getDurationEnv("REDIS_IDLE_TIMEOUT", 5*time.Minute),
 		},
 		Webhook: WebhookConfig{
-			URL:     getEnv("WEBHOOK_URL", "https://webhook.site/c3f13233-1ed4-429e-9649-8133b3b9c9cd"),
+			URL:     getEnv("WEBHOOK_URL", "https://webhook.site/669a9259-3499-47c6-a930-1fdf93357998"),
 			Timeout: getDurationEnv("WEBHOOK_TIMEOUT", 30*time.Second),
 			AuthKey: getEnv("WEBHOOK_AUTH_KEY", "INS.me1x9uMcyYGlhKKQVPoc.bO3j9aZwRTOcA2Ywo"),
 		},

@@ -40,7 +40,7 @@ func NewMessageHandler(dataOps *dataOperations.DataOperations, config *config.Co
 // @Success 200 {object} models.MessageListResponse
 // @Failure 400 {object} gin.H
 // @Failure 500 {object} gin.H
-// @Router /api/v1/messages/sent [get]
+// @Router /messages/sent [get]
 func (h *MessageHandler) GetSentMessages(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
