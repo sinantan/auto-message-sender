@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	_ "github.com/sinan/auto-message-sender/cmd/auto-message-sender/docs"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
@@ -34,18 +33,10 @@ func main() {
 	defer mongoClient.Close()
 
 	redisConfig := &redisdb.RedisConfig{
-		Host:         cfg.Redis.Host,
-		Port:         cfg.Redis.Port,
-		Password:     cfg.Redis.Password,
-		Database:     cfg.Redis.Database,
-		DialTimeout:  cfg.Redis.DialTimeout,
-		ReadTimeout:  cfg.Redis.ReadTimeout,
-		WriteTimeout: cfg.Redis.WriteTimeout,
-		PoolSize:     cfg.Redis.PoolSize,
-		MinIdleConns: cfg.Redis.MinIdleConns,
-		MaxConnAge:   cfg.Redis.MaxConnAge,
-		PoolTimeout:  cfg.Redis.PoolTimeout,
-		IdleTimeout:  cfg.Redis.IdleTimeout,
+		Host:     cfg.Redis.Host,
+		Port:     cfg.Redis.Port,
+		Password: cfg.Redis.Password,
+		Database: cfg.Redis.Database,
 	}
 
 	redisClient, err := redisdb.New(redisConfig)
@@ -89,10 +80,9 @@ func main() {
 
 	log.Info("Shutting down server...")
 
-	// Stop scheduler first and wait for jobs to complete
 	if schedulerHandler != nil {
 		log.Info("Stopping scheduler...")
-		schedulerHandler.StopScheduler(&gin.Context{})
+		schedulerHandler.GracefulStop()
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

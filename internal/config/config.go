@@ -26,18 +26,10 @@ type MongoDBConfig struct {
 }
 
 type RedisConfig struct {
-	Host         string
-	Port         string
-	Password     string
-	Database     int
-	DialTimeout  time.Duration
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	PoolSize     int
-	MinIdleConns int
-	MaxConnAge   time.Duration
-	PoolTimeout  time.Duration
-	IdleTimeout  time.Duration
+	Host     string
+	Port     string
+	Password string
+	Database int
 }
 
 type WebhookConfig struct {
@@ -65,18 +57,10 @@ func Load() *Config {
 			Timeout:  getDurationEnv("MONGODB_TIMEOUT", 10*time.Second),
 		},
 		Redis: RedisConfig{
-			Host:         getEnv("REDIS_HOST", "localhost"),
-			Port:         getEnv("REDIS_PORT", "6379"),
-			Password:     getEnv("REDIS_PASSWORD", ""),
-			Database:     getIntEnv("REDIS_DATABASE", 0),
-			DialTimeout:  getDurationEnv("REDIS_DIAL_TIMEOUT", 5*time.Second),
-			ReadTimeout:  getDurationEnv("REDIS_READ_TIMEOUT", 3*time.Second),
-			WriteTimeout: getDurationEnv("REDIS_WRITE_TIMEOUT", 3*time.Second),
-			PoolSize:     getIntEnv("REDIS_POOL_SIZE", 10),
-			MinIdleConns: getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
-			MaxConnAge:   getDurationEnv("REDIS_MAX_CONN_AGE", 30*time.Minute),
-			PoolTimeout:  getDurationEnv("REDIS_POOL_TIMEOUT", 4*time.Second),
-			IdleTimeout:  getDurationEnv("REDIS_IDLE_TIMEOUT", 5*time.Minute),
+			Host:     getEnv("REDIS_HOST", "localhost"),
+			Port:     getEnv("REDIS_PORT", "6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+			Database: getIntEnv("REDIS_DATABASE", 0),
 		},
 		Webhook: WebhookConfig{
 			URL:     getEnv("WEBHOOK_URL", "https://webhook.site/669a9259-3499-47c6-a930-1fdf93357998"),

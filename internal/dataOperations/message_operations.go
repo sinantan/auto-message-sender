@@ -22,7 +22,7 @@ func (do *DataOperations) GetPendingMessages(limit int) ([]models.Message, error
 	}
 
 	opts := options.Find().
-		SetSort(bson.D{{"created_at", 1}}).
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
 		SetLimit(int64(limit))
 
 	return mongodb.Query[models.Message](do.mongo, MessagesCollection, filter, opts)
@@ -38,7 +38,7 @@ func (do *DataOperations) GetSentMessages(page, perPage int) ([]models.Message, 
 
 	skip := (page - 1) * perPage
 	opts := options.Find().
-		SetSort(bson.D{{"sent_at", -1}}).
+		SetSort(bson.D{{Key: "sent_at", Value: -1}}).
 		SetSkip(int64(skip)).
 		SetLimit(int64(perPage))
 

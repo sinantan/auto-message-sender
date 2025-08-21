@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   gin.H:
     additionalProperties: {}
@@ -63,10 +64,15 @@ definitions:
       stopped_at:
         type: string
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: An automatic message sending system that sends messages to webhook
+    endpoints at regular intervals.
+  title: Auto Message Sender API
+  version: "1.0"
 paths:
-  /api/v1/messages/sent:
+  /messages/sent:
     get:
       consumes:
       - application/json
@@ -100,7 +106,7 @@ paths:
       summary: Get list of sent messages
       tags:
       - messages
-  /api/v1/scheduler/start:
+  /scheduler/start:
     post:
       consumes:
       - application/json
@@ -123,7 +129,7 @@ paths:
       summary: Start the message scheduler
       tags:
       - scheduler
-  /api/v1/scheduler/stop:
+  /scheduler/stop:
     post:
       consumes:
       - application/json

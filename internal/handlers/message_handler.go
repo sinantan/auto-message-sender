@@ -1,16 +1,15 @@
 package handlers
 
 import (
-	"math"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/models"
 	"github.com/sirupsen/logrus"
+	"math"
+	"net/http"
+	"strconv"
 )
 
 type MessageHandler struct {

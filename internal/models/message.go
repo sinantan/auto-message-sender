@@ -41,18 +41,3 @@ type MessageListResponse struct {
 	PerPage    int       `json:"per_page"`
 	TotalPages int       `json:"total_pages"`
 }
-
-type CreateMessageRequest struct {
-	To      string `json:"to" validate:"required,e164"`
-	Content string `json:"content" validate:"required,max=160"`
-}
-
-func NewMessage(to, content string) *Message {
-	return &Message{
-		To:         to,
-		Content:    content,
-		Status:     MessageStatusPending,
-		CreatedAt:  time.Now(),
-		RetryCount: 0,
-	}
-}

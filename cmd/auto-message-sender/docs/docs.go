@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/messages/sent": {
+        "/messages/sent": {
             "get": {
                 "description": "Retrieve a paginated list of sent messages",
                 "consumes": [
@@ -66,7 +66,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/scheduler/start": {
+        "/scheduler/start": {
             "post": {
                 "description": "Start the automatic message sending scheduler",
                 "consumes": [
@@ -101,7 +101,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/scheduler/stop": {
+        "/scheduler/stop": {
             "post": {
                 "description": "Stop the automatic message sending scheduler",
                 "consumes": [
@@ -237,12 +237,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Auto Message Sender API",
+	Description:      "An automatic message sending system that sends messages to webhook endpoints at regular intervals.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

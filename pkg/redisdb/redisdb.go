@@ -12,18 +12,10 @@ type RedisDB struct {
 }
 
 type RedisConfig struct {
-	Host         string
-	Port         string
-	Password     string
-	Database     int
-	DialTimeout  time.Duration
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	PoolSize     int
-	MinIdleConns int
-	MaxConnAge   time.Duration
-	PoolTimeout  time.Duration
-	IdleTimeout  time.Duration
+	Host     string
+	Port     string
+	Password string
+	Database int
 }
 
 func (r *RedisConfig) GetRedisAddr() string {
@@ -32,17 +24,9 @@ func (r *RedisConfig) GetRedisAddr() string {
 
 func New(cfg *RedisConfig) (*RedisDB, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:         cfg.GetRedisAddr(),
-		Password:     cfg.Password,
-		DB:           cfg.Database,
-		DialTimeout:  cfg.DialTimeout,
-		ReadTimeout:  cfg.ReadTimeout,
-		WriteTimeout: cfg.WriteTimeout,
-		PoolSize:     cfg.PoolSize,
-		MinIdleConns: cfg.MinIdleConns,
-		MaxConnAge:   cfg.MaxConnAge,
-		PoolTimeout:  cfg.PoolTimeout,
-		IdleTimeout:  cfg.IdleTimeout,
+		Addr:     cfg.GetRedisAddr(),
+		Password: cfg.Password,
+		DB:       cfg.Database,
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

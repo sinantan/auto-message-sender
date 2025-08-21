@@ -1,13 +1,23 @@
 package models
 
-import "time"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
 
-type SchedulerStatus struct {
-	ID        string     `bson:"_id" json:"id"`
-	IsActive  bool       `bson:"is_active" json:"is_active"`
-	StartedAt *time.Time `bson:"started_at,omitempty" json:"started_at,omitempty"`
-	StoppedAt *time.Time `bson:"stopped_at,omitempty" json:"stopped_at,omitempty"`
-	UpdatedAt time.Time  `bson:"updated_at" json:"updated_at"`
+type SchedulerAction string
+
+const (
+	SchedulerActionStart SchedulerAction = "start"
+	SchedulerActionStop  SchedulerAction = "stop"
+)
+
+type SchedulerLog struct {
+	ID        string          `bson:"_id" json:"id"`
+	Action    SchedulerAction `bson:"action" json:"action"`
+	StartID   *string         `bson:"start_id,omitempty" json:"start_id,omitempty"`
+	Timestamp time.Time       `bson:"timestamp" json:"timestamp"`
+	CreatedAt time.Time       `bson:"created_at" json:"created_at"`
 }
 
 type SchedulerResponse struct {
@@ -22,21 +32,24 @@ type CachedMessage struct {
 	SentAt    time.Time `json:"sent_at"`
 }
 
-const SchedulerStatusID = "scheduler_status"
-
-func NewSchedulerStatus(isActive bool) *SchedulerStatus {
+func NewSchedulerStartLog() *SchedulerLog {
 	now := time.Now()
-	status := &SchedulerStatus{
-		ID:        SchedulerStatusID,
-		IsActive:  isActive,
-		UpdatedAt: now,
+	return &SchedulerLog{
+		ID:        primitive.NewObjectID().Hex(),
+		Action:    SchedulerActionStart,
+		StartID:   nil,
+		Timestamp: now,
+		CreatedAt: now,
 	}
+}
 
-	if isActive {
-		status.StartedAt = &now
-	} else {
-		status.StoppedAt = &now
+func NewSchedulerStopLog(startID string) *SchedulerLog {
+	now := time.Now()
+	return &SchedulerLog{
+		ID:        primitive.NewObjectID().Hex(),
+		Action:    SchedulerActionStop,
+		StartID:   &startID,
+		Timestamp: now,
+		CreatedAt: now,
 	}
-
-	return status
 }

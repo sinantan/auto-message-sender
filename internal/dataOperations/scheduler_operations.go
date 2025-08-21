@@ -3,29 +3,42 @@ package dataOperations
 import (
 	"github.com/sinan/auto-message-sender/internal/models"
 	"github.com/sinan/auto-message-sender/pkg/mongodb"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const SchedulerCollection = "scheduler_status"
+const SchedulerLogsCollection = "scheduler_logs"
 
-func (do *DataOperations) GetSchedulerStatus() (*models.SchedulerStatus, error) {
-	status, err := mongodb.GetOneById[models.SchedulerStatus](do.mongo, SchedulerCollection, models.SchedulerStatusID)
-	if err != nil {
-		return nil, err
-	}
-
-	if status == nil {
-		defaultStatus := models.NewSchedulerStatus(false)
-		err = mongodb.UpsertOne(do.mongo, SchedulerCollection, defaultStatus.ID, defaultStatus)
-		if err != nil {
-			return nil, err
-		}
-		return defaultStatus, nil
-	}
-
-	return status, nil
+func (do *DataOperations) CreateSchedulerStartLog() (string, error) {
+	log := models.NewSchedulerStartLog()
+	err := mongodb.InsertOne(do.mongo, SchedulerLogsCollection, log)
+	return log.ID, err
 }
 
-func (do *DataOperations) UpdateSchedulerStatus(isActive bool) error {
-	status := models.NewSchedulerStatus(isActive)
-	return mongodb.UpsertOne(do.mongo, SchedulerCollection, status.ID, status)
+func (do *DataOperations) CreateSchedulerStopLog(startID string) error {
+	log := models.NewSchedulerStopLog(startID)
+	return mongodb.InsertOne(do.mongo, SchedulerLogsCollection, log)
+}
+
+func (do *DataOperations) IsSchedulerActive() (bool, error) {
+	opts := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}}).SetLimit(1)
+	results, err := mongodb.Query[models.SchedulerLog](do.mongo, SchedulerLogsCollection, bson.M{}, opts)
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(results) == 0 {
+		return false, nil
+	}
+
+	return results[0].Action == models.SchedulerActionStart, nil
+}
+
+func (do *DataOperations) StartScheduler() (string, error) {
+	return do.CreateSchedulerStartLog()
+}
+
+func (do *DataOperations) StopScheduler(startID string) error {
+	return do.CreateSchedulerStopLog(startID)
 }

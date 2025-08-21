@@ -2,15 +2,14 @@ package handlers
 
 import (
 	"context"
-	"net/http"
-	"sync"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/models"
 	"github.com/sirupsen/logrus"
+	"net/http"
+	"sync"
+	"time"
 )
 
 type SchedulerHandler struct {
@@ -22,6 +21,7 @@ type SchedulerHandler struct {
 	stopChan       chan struct{}
 	isRunning      bool
 	activeJobs     sync.WaitGroup
+	currentStartID string
 	mu             sync.RWMutex
 }
 
@@ -60,14 +60,16 @@ func (h *SchedulerHandler) StartScheduler(c *gin.Context) {
 		return
 	}
 
-	if err := h.dataOps.UpdateSchedulerStatus(true); err != nil {
-		h.logger.WithError(err).Error("Failed to update scheduler status")
+	startID, err := h.dataOps.StartScheduler()
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to create scheduler start log")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to start scheduler",
 		})
 		return
 	}
 
+	h.currentStartID = startID
 	h.startScheduler()
 
 	h.logger.Info("Scheduler started successfully")
@@ -103,8 +105,8 @@ func (h *SchedulerHandler) StopScheduler(c *gin.Context) {
 		return
 	}
 
-	if err := h.dataOps.UpdateSchedulerStatus(false); err != nil {
-		h.logger.WithError(err).Error("Failed to update scheduler status")
+	if err := h.dataOps.StopScheduler(h.currentStartID); err != nil {
+		h.logger.WithError(err).Error("Failed to create scheduler stop log")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to stop scheduler",
 		})
@@ -156,11 +158,31 @@ func (h *SchedulerHandler) stopScheduler() {
 	h.logger.Info("All jobs completed, scheduler stopped")
 
 	h.isRunning = false
+	h.currentStartID = ""
+}
+
+func (h *SchedulerHandler) GracefulStop() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if !h.isRunning {
+		return
+	}
+
+	h.logger.Info("Gracefully stopping scheduler...")
+
+	if err := h.dataOps.StopScheduler(h.currentStartID); err != nil {
+		h.logger.WithError(err).Error("Failed to create scheduler stop log during graceful shutdown")
+	}
+
+	h.stopScheduler()
+
+	h.logger.Info("Scheduler stopped gracefully")
 }
 
 func (h *SchedulerHandler) processMessages() {
 	ctx := context.Background()
-
+	// fmt.Println("Processing messages e geldi")
 	messages, err := h.dataOps.GetPendingMessages(h.config.App.MessagesPerInterval)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to get pending messages")
@@ -196,7 +218,6 @@ func (h *SchedulerHandler) processSingleMessage(ctx context.Context, message mod
 		Content: message.Content,
 	}
 
-	// Try with retry mechanism
 	response, err := h.webhookHandler.SendMessageWithRetry(ctx, webhookReq, 3)
 	if err != nil {
 		logger.WithError(err).Error("Failed to send message after retries")
