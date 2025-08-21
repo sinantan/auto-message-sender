@@ -196,6 +196,8 @@ docker run -p 8080:8080 --env-file .env auto-message-sender
 - `GET /swagger/*` - API documentation
 
 ## Proof of requests
-<img width="2098" height="699" alt="Screenshot 2025-08-22 at 01 47 19" src="https://github.com/user-attachments/assets/af9dc772-497e-48f8-b544-eb4097543e00" />
+
+<img width="2098" height="699" alt="Screenshot 2025-08-22 at 01 47 19" src="https://github.com/user-attachments/assets/e46bb59c-7008-47a6-9a73-0d63307e1513" />
+
 
 
