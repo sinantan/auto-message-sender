@@ -124,35 +124,6 @@ func (h *SchedulerHandler) StopScheduler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetSchedulerStatus godoc
-// @Summary Get scheduler status
-// @Description Get the current status of the message scheduler
-// @Tags scheduler
-// @Accept json
-// @Produce json
-// @Success 200 {object} models.SchedulerResponse
-// @Failure 500 {object} gin.H
-// @Router /api/v1/scheduler/status [get]
-func (h *SchedulerHandler) GetSchedulerStatus(c *gin.Context) {
-	status, err := h.dataOps.GetSchedulerStatus()
-	if err != nil {
-		h.logger.WithError(err).Error("Failed to get scheduler status")
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get scheduler status",
-		})
-		return
-	}
-
-	response := models.SchedulerResponse{
-		IsActive:  status.IsActive,
-		StartedAt: status.StartedAt,
-		StoppedAt: status.StoppedAt,
-		Message:   "Scheduler status retrieved successfully",
-	}
-
-	c.JSON(http.StatusOK, response)
-}
-
 func (h *SchedulerHandler) startScheduler() {
 	h.isRunning = true
 	h.stopChan = make(chan struct{})

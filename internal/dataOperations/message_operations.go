@@ -2,12 +2,11 @@ package dataOperations
 
 import (
 	"context"
-	"time"
-
 	"github.com/sinan/auto-message-sender/internal/models"
 	"github.com/sinan/auto-message-sender/pkg/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 const MessagesCollection = "messages"

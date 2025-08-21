@@ -1,0 +1,149 @@
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  github_com_sinan_auto-message-sender_internal_models.Message:
+    properties:
+      content:
+        maxLength: 160
+        type: string
+      created_at:
+        type: string
+      error:
+        type: string
+      id:
+        type: string
+      message_id:
+        type: string
+      retry_count:
+        type: integer
+      sent_at:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_sinan_auto-message-sender_internal_models.MessageStatus'
+      to:
+        type: string
+    required:
+    - content
+    - to
+    type: object
+  github_com_sinan_auto-message-sender_internal_models.MessageListResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/github_com_sinan_auto-message-sender_internal_models.Message'
+        type: array
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_sinan_auto-message-sender_internal_models.MessageStatus:
+    enum:
+    - pending
+    - sent
+    - failed
+    type: string
+    x-enum-varnames:
+    - MessageStatusPending
+    - MessageStatusSent
+    - MessageStatusFailed
+  github_com_sinan_auto-message-sender_internal_models.SchedulerResponse:
+    properties:
+      is_active:
+        type: boolean
+      message:
+        type: string
+      started_at:
+        type: string
+      stopped_at:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/messages/sent:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a paginated list of sent messages
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sinan_auto-message-sender_internal_models.MessageListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get list of sent messages
+      tags:
+      - messages
+  /api/v1/scheduler/start:
+    post:
+      consumes:
+      - application/json
+      description: Start the automatic message sending scheduler
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sinan_auto-message-sender_internal_models.SchedulerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Start the message scheduler
+      tags:
+      - scheduler
+  /api/v1/scheduler/stop:
+    post:
+      consumes:
+      - application/json
+      description: Stop the automatic message sending scheduler
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sinan_auto-message-sender_internal_models.SchedulerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Stop the message scheduler
+      tags:
+      - scheduler
+swagger: "2.0"

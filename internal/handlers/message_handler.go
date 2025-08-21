@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/models"
@@ -28,57 +27,6 @@ func NewMessageHandler(dataOps *dataOperations.DataOperations, config *config.Co
 		logger:    logger,
 		validator: validator.New(),
 	}
-}
-
-// CreateMessage godoc
-// @Summary Create a new message
-// @Description Create a new message to be sent
-// @Tags messages
-// @Accept json
-// @Produce json
-// @Param message body models.CreateMessageRequest true "Message data"
-// @Success 201 {object} models.Message
-// @Failure 400 {object} gin.H
-// @Failure 500 {object} gin.H
-// @Router /api/v1/messages [post]
-func (h *MessageHandler) CreateMessage(c *gin.Context) {
-	var req models.CreateMessageRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Invalid request body",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	if err := h.validator.Struct(&req); err != nil {
-		h.logger.WithError(err).Error("Validation failed")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Validation failed",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	message := models.NewMessage(req.To, req.Content)
-	message.ID = uuid.New().String()
-
-	if err := h.dataOps.CreateMessage(message); err != nil {
-		h.logger.WithError(err).Error("Failed to create message")
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to create message",
-		})
-		return
-	}
-
-	h.logger.WithFields(logrus.Fields{
-		"message_id": message.ID,
-		"to":         message.To,
-	}).Info("Message created successfully")
-
-	c.JSON(http.StatusCreated, message)
 }
 
 // GetSentMessages godoc

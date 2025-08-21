@@ -3,9 +3,8 @@ package dataOperations
 import (
 	"context"
 	"fmt"
-	"time"
-
 	"github.com/sinan/auto-message-sender/internal/models"
+	"time"
 )
 
 func (do *DataOperations) CacheMessage(messageID string, sentAt time.Time) error {

@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"time"
-
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/models"
 	"github.com/sirupsen/logrus"
+	"io"
+	"net/http"
+	"time"
 )
 
 type WebhookHandler struct {

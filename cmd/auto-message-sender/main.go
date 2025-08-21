@@ -2,26 +2,26 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
 	"github.com/sinan/auto-message-sender/internal/config"
 	"github.com/sinan/auto-message-sender/internal/dataOperations"
 	"github.com/sinan/auto-message-sender/internal/handlers"
 	"github.com/sinan/auto-message-sender/pkg/logger"
 	"github.com/sinan/auto-message-sender/pkg/mongodb"
 	"github.com/sinan/auto-message-sender/pkg/redisdb"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
 	cfg := config.Load()
 
-	logger := logger.New()
-	logger.Infof("Starting Auto Message Sender API (%s)", cfg.App.Environment)
+	log := logger.New()
+	log.Infof("Starting Auto Message Sender API (%s)", cfg.App.Environment)
 
 	mongoClient := mongodb.New(cfg.MongoDB.URI, cfg.MongoDB.Database, cfg.App.Environment == "development")
 	defer mongoClient.Close()
@@ -43,20 +43,20 @@ func main() {
 
 	redisClient, err := redisdb.New(redisConfig)
 	if err != nil {
-		logger.Fatalf("Failed to connect to Redis: %v", err)
+		log.Fatalf("Failed to connect to Redis: %v", err)
 	}
 	defer redisClient.Close()
 
 	dataOps := dataOperations.New(mongoClient, redisClient, cfg)
 
-	webhookHandler := handlers.NewWebhookHandler(cfg, logger)
-	messageHandler := handlers.NewMessageHandler(dataOps, cfg, logger)
-	schedulerHandler := handlers.NewSchedulerHandler(dataOps, cfg, logger)
+	webhookHandler := handlers.NewWebhookHandler(cfg, log)
+	messageHandler := handlers.NewMessageHandler(dataOps, cfg, log)
+	schedulerHandler := handlers.NewSchedulerHandler(dataOps, cfg, log)
 	schedulerHandler.SetWebhookHandler(webhookHandler)
 
 	router := NewRouter(
 		cfg,
-		logger,
+		log,
 		messageHandler,
 		schedulerHandler,
 		webhookHandler,
@@ -71,9 +71,9 @@ func main() {
 	}
 
 	go func() {
-		logger.Infof("Server starting on port %s", cfg.Server.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("Failed to start server: %v", err)
+		log.Infof("Server starting on port %s", cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
@@ -81,22 +81,14 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	logger.Info("Shutting down server...")
+	log.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		logger.Fatalf("Server forced to shutdown: %v", err)
+		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	logger.Info("Server exited")
-}
-
-func getEnvironmentValue(key string, defaultValue string) string {
-	value, hasValue := os.LookupEnv(key)
-	if hasValue {
-		return value
-	}
-	return defaultValue
+	log.Info("Server exited")
 }

@@ -2,15 +2,14 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log"
-	"runtime"
-	"strings"
-	"time"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"runtime"
+	"time"
 )
 
 //var db *MongoDB
@@ -45,11 +44,6 @@ func (m *MongoDB) logMongo() {
 		} else {
 			cf := runtime.FuncForPC(pc).Name()
 			cf = runtime.FuncForPC(pc).Name()
-			cf = strings.Replace(cf, "github.com/VestraOrganization/brolyz/", "", -1)
-			cf = strings.Replace(cf, "cmd/brolyz/", "", -1)
-			cf = strings.Replace(cf, "internal/", "", -1)
-			cf = strings.Replace(cf, "mongodb.(*MongoDB).", "", -1)
-			cf = strings.Replace(cf, ".(*DataOperations)", "", -1)
 			callers = append(callers, cf)
 		}
 	}
@@ -65,23 +59,19 @@ func (m *MongoDB) logMongo() {
 	log.Println(fmt.Sprintf("MONGODB REQUEST: %s", finalLogMessage))
 }
 
-// GetClient returns the MongoDB client (public method)
 func (m *MongoDB) GetClient() (*mongo.Client, error) {
 	return m.getClient()
 }
 
 func (m *MongoDB) getClient() (*mongo.Client, error) {
 	if m.Client != nil {
-		// Ping the server to verify the connection is still alive
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		err := m.Client.Ping(ctx, nil)
 		if err == nil {
-			// If there is no error, return the existing client
 			return m.Client, nil
 		}
-		// If ping failed, close the client and try to reconnect
 		m.Client.Disconnect(context.Background())
 		m.Client = nil
 	}
@@ -90,13 +80,12 @@ func (m *MongoDB) getClient() (*mongo.Client, error) {
 
 	var err error
 	clientOptions := options.Client().ApplyURI(m.ConnectionString).
-		SetServerSelectionTimeout(5 * time.Second). // Timeout for selecting a server
-		SetConnectTimeout(10 * time.Second).        // Timeout for establishing a connection
-		SetMaxPoolSize(100).                        // Maximum number of connections in the pool
-		SetMinPoolSize(5).                          // Minimum number of connections in the pool
-		SetMaxConnIdleTime(5 * time.Minute)         // Maximum time that a connection can be idle
+		SetServerSelectionTimeout(5 * time.Second).
+		SetConnectTimeout(10 * time.Second).
+		SetMaxPoolSize(100).
+		SetMinPoolSize(5).
+		SetMaxConnIdleTime(5 * time.Minute)
 
-	// Try to connect with retries
 	maxRetries := 3
 	for i := 0; i < maxRetries; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -104,7 +93,6 @@ func (m *MongoDB) getClient() (*mongo.Client, error) {
 		cancel()
 
 		if err == nil {
-			// Verify the connection
 			ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 			err = m.Client.Ping(ctx, nil)
 			cancel()
@@ -114,13 +102,11 @@ func (m *MongoDB) getClient() (*mongo.Client, error) {
 			}
 		}
 
-		// If we get here, there was an error
 		if m.Client != nil {
 			m.Client.Disconnect(context.Background())
 			m.Client = nil
 		}
 
-		// Wait before retrying
 		if i < maxRetries-1 {
 			time.Sleep(time.Duration(i+1) * time.Second)
 		}
@@ -152,8 +138,6 @@ func GetOneById[T any](db *MongoDB, collectionName string, id string) (*T, error
 	collection := client.Database(db.DBName).Collection(collectionName)
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-	//defer client.Disconnect(ctx)
 
 	filter := bson.D{{"_id", id}}
 
@@ -165,7 +149,6 @@ func GetOneById[T any](db *MongoDB, collectionName string, id string) (*T, error
 	return result, err
 }
 
-// GetOneWithFilter retrieves a single document using a custom filter
 func GetOneWithFilter[T any](db *MongoDB, collectionName string, filter interface{}) (*T, error) {
 	db.logMongo()
 	client, err := db.getClient()
@@ -233,13 +216,11 @@ func IncrementValue(db *MongoDB, collectionName string, id string, fieldName str
 
 	collection := client.Database(db.DBName).Collection(collectionName)
 
-	// Update one document
 	_, err = collection.UpdateOne(context.TODO(), bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
 
-	//log.Println(result)
 	return err
 }
 
@@ -254,13 +235,11 @@ func SetValue(db *MongoDB, collectionName string, id string, fieldName string, v
 
 	collection := client.Database(db.DBName).Collection(collectionName)
 
-	// Update one document
 	_, err = collection.UpdateOne(context.TODO(), bson.M{"_id": id}, update)
 	if err != nil {
 		return err
 	}
 
-	//log.Println(result)
 	return err
 }
 
@@ -285,9 +264,6 @@ func UpsertOne[T any](db *MongoDB, collectionName string, id string, record *T) 
 		return err
 	}
 
-	//fmt.Printf("Number of documents updated: %v\n", result.ModifiedCount)
-	//fmt.Printf("Number of documents upserted: %v\n", result.UpsertedCount)
-
 	return nil
 }
 
@@ -308,10 +284,8 @@ func BulkWrite(db *MongoDB, collectionName string, writeModels []mongo.WriteMode
 	if err != nil {
 		if bulkWriteException, ok := err.(mongo.BulkWriteException); ok {
 			for _, writeError := range bulkWriteException.WriteErrors {
-				if writeError.Code == 11000 { // Duplicate key error code
+				if writeError.Code == 11000 {
 					numberOfDuplicates++
-					//No problem. Review is already in the database
-					//fmt.Printf("Duplicate key error: %v\n", writeError.Message)
 				} else {
 					return numberOfDuplicates, err
 				}
@@ -320,8 +294,6 @@ func BulkWrite(db *MongoDB, collectionName string, writeModels []mongo.WriteMode
 			return numberOfDuplicates, err
 		}
 	}
-
-	//fmt.Printf("Inserted %d documents\n", result.InsertedCount)
 
 	return numberOfDuplicates, nil
 }
@@ -343,10 +315,7 @@ func BulkUpdate(db *MongoDB, collectionName string, updateModels []mongo.WriteMo
 	if err != nil {
 		if bulkWriteException, ok := err.(mongo.BulkWriteException); ok {
 			for _, _ = range bulkWriteException.WriteErrors {
-				// Handle specific error codes if necessary
 				numberOfFailures++
-				// Uncomment below line for debug logging
-				// fmt.Printf("Write error: %v\n", writeError.Message)
 			}
 		} else {
 			return numberOfFailures, err
@@ -375,7 +344,7 @@ func Query[T any](db *MongoDB, collectionName string, filter interface{}, opts *
 	//opts := options.Find().SetSort(bson.D{{"credate", -1}})
 
 	if cursor, err := collection.Find(ctx, filter, opts); err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
 
@@ -405,8 +374,6 @@ func GetAll[T any](db *MongoDB, collectionName string) ([]T, error) {
 	filter := bson.D{}
 
 	ctx, _ := context.WithTimeout(context.Background(), 20*time.Second)
-	//defer cancel()
-	//defer client.Disconnect(ctx)
 
 	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
@@ -431,8 +398,6 @@ func DeleteOne(db *MongoDB, collectionName string, id string) error {
 	collection := client.Database(db.DBName).Collection(collectionName)
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-	//defer client.Disconnect(ctx)
 
 	filter := bson.D{{"_id", id}}
 

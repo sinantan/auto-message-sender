@@ -2,10 +2,9 @@ package filtering
 
 import (
 	"fmt"
-	"time"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"time"
 )
 
 type MongoFilterBuilder struct {

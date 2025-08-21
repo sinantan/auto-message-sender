@@ -3,9 +3,8 @@ package redisdb
 import (
 	"context"
 	"encoding/json"
-	"time"
-
 	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 type RedisDB struct {
@@ -46,7 +45,6 @@ func New(cfg *RedisConfig) (*RedisDB, error) {
 		IdleTimeout:  cfg.IdleTimeout,
 	})
 
-	// Test connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -79,7 +77,6 @@ func (r *RedisDB) Delete(ctx context.Context, key string) error {
 	return r.client.Del(ctx, key).Err()
 }
 
-// SetJSON stores a JSON-serialized object with expiration
 func (r *RedisDB) SetJSON(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -88,7 +85,6 @@ func (r *RedisDB) SetJSON(ctx context.Context, key string, value interface{}, ex
 	return r.client.Set(ctx, key, data, expiration).Err()
 }
 
-// GetJSON retrieves and deserializes a JSON object
 func (r *RedisDB) GetJSON(ctx context.Context, key string, dest interface{}) error {
 	data, err := r.client.Get(ctx, key).Result()
 	if err != nil {
@@ -97,12 +93,10 @@ func (r *RedisDB) GetJSON(ctx context.Context, key string, dest interface{}) err
 	return json.Unmarshal([]byte(data), dest)
 }
 
-// SetWithExpiration stores a value with expiration
 func (r *RedisDB) SetWithExpiration(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	return r.client.Set(ctx, key, value, expiration).Err()
 }
 
-// Exists checks if a key exists
 func (r *RedisDB) Exists(ctx context.Context, key string) (bool, error) {
 	result, err := r.client.Exists(ctx, key).Result()
 	return result > 0, err
